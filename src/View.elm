@@ -14,7 +14,11 @@ import Utils exposing (Pair, joinPair, map2Pair, mapPair, maxInt, mean, minInt, 
 
 view : Model -> Html Msg
 view model =
-    div [ style "display" "flex", style "flex-direction" "row", style "align-items" "center" ]
+    div
+        [ style "display" "flex"
+        , style "flex-direction" "row"
+        , style "align-items" "center"
+        ]
         [ div [ A.style "width" "400px", A.style "height" "400px" ]
             [ svg
                 [ viewBox "0 0 400 400"
@@ -31,7 +35,8 @@ view model =
                 ]
             ]
         , div
-            [ style "display" "flex"
+            [ class "controls"
+            , style "display" "flex"
             , style "flex-direction" "column"
             ]
             (List.map (\f -> f model)
@@ -48,9 +53,9 @@ view model =
 viewYearSelector : Model -> Html Msg
 viewYearSelector { year } =
     div
-        []
-        [ label [ for "year-selector", style "font-size" "14px" ] [ text "Year" ]
-        , select [ id "year-selector", A.style "width" "100px", A.style "height" "30px", A.onInput YearSelected ]
+        [ class "control-row" ]
+        [ label [ for "year-selector" ] [ text "Year" ]
+        , select [ id "year-selector", A.onInput YearSelected ]
             (List.map
                 (\y ->
                     Html.option
@@ -65,9 +70,9 @@ viewYearSelector { year } =
 viewMonthSelector : Model -> Html Msg
 viewMonthSelector { month } =
     div
-        []
-        [ label [ for "month-selector", style "font-size" "14px" ] [ text "Month" ]
-        , select [ id "month-selector", A.style "width" "100px", A.style "height" "30px", A.onInput MonthSelected ]
+        [ class "control-row" ]
+        [ label [ for "month-selector" ] [ text "Month" ]
+        , select [ id "month-selector", A.onInput MonthSelected ]
             (List.map
                 (\m ->
                     Html.option
@@ -82,9 +87,9 @@ viewMonthSelector { month } =
 viewDaySelector : Model -> Html Msg
 viewDaySelector { year, month, day } =
     div
-        []
-        [ label [ for "day-selector", style "font-size" "14px" ] [ text "Day" ]
-        , select [ id "day-selector", A.style "width" "100px", A.style "height" "30px", A.onInput DaySelected ]
+        [ class "control-row" ]
+        [ label [ for "day-selector" ] [ text "Day" ]
+        , select [ id "day-selector", A.onInput DaySelected ]
             (List.map
                 (\d ->
                     Html.option
@@ -101,10 +106,10 @@ viewAutoplayToggle model =
     div
         [ style "display" "flex"
         , style "flex-direction" "row"
-        , style "margin" "3px auto auto"
+        , class "control-row"
         ]
-        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "Autoplay" ]
-        , div [ class "autoplay-toggle" ]
+        [ label [ for "autoplay-toggle", style "padding-top" "5px" ] [ text "Autoplay" ]
+        , div [ id "autoplay-toggle", class "autoplay-toggle" ]
             [ input
                 [ id "autoplay-toggle"
                 , A.type_ "checkbox"
@@ -121,12 +126,9 @@ viewAutoplayToggle model =
 viewSpeedSelect : Model -> Html Msg
 viewSpeedSelect model =
     div
-        [ style "display" "flex"
-        , style "flex-direction" "row"
-        , style "margin" "3px auto auto"
-        ]
-        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "Speed" ]
-        , select [ A.style "width" "100px", A.style "height" "30px", A.onInput SpeedSelected ]
+        [ class "control-row" ]
+        [ label [ for "speed-select" ] [ text "Speed" ]
+        , select [ id "speed-select", A.onInput SpeedSelected ]
             (List.map
                 (\( v, t ) -> Html.option [ A.value v, selected <| v == fromFloat model.speed ] [ text t ])
                 [ ( "250", "0.25s" )
