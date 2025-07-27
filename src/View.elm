@@ -56,6 +56,10 @@ view model =
             [ text "Inspired by "
             , a [ A.href "https://www.johndcook.com/expsum/details.html" ] [ text "Explanation of exponential sums" ]
             ]
+        , div
+            [ style "margin-top" "10px" ]
+            [ a [ A.href "https://github.com/yasuabe/exponential-sum-in-elm" ] [ text "GitHub" ]
+            ]
         ]
 
 
