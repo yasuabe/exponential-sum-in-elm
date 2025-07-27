@@ -1,7 +1,7 @@
 module View exposing (..)
 
 import DateEx exposing (lastDayOfMonth)
-import Html exposing (Html, a, div, h2, input, label, select, text)
+import Html exposing (Html, a, div, h2, input, label, select, text, main_)
 import Html.Attributes as A exposing (checked, class, for, id, selected, style)
 import Html.Events as A
 import Model exposing (Model, scanExpSums)
@@ -14,7 +14,7 @@ import Utils exposing (Pair, joinPair, map2Pair, mapPair, maxInt, mean, minInt, 
 
 view : Model -> Html Msg
 view model =
-    div
+    main_
         []
         [ h2 [ class "title" ] [ text "Exponential Sums Visualization" ]
         , div

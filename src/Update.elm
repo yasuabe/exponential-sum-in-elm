@@ -40,7 +40,7 @@ update msg model =
                     toDateTriple model.zone posix
 
                 newModel =
-                    { model | year = year, month = month, today = ( year, month, day ) }
+                    { model | year = year, month = month, day = day, today = ( year, month, day ) }
             in
             ( newModel, delayTick )
 
