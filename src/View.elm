@@ -1,7 +1,7 @@
 module View exposing (..)
 
 import DateEx exposing (lastDayOfMonth)
-import Html exposing (Html, div, input, label, select, span, text)
+import Html exposing (Html, a, div, h2, input, label, select, text)
 import Html.Attributes as A exposing (checked, class, for, id, selected, style)
 import Html.Events as A
 import Model exposing (Model, scanExpSums)
@@ -15,38 +15,47 @@ import Utils exposing (Pair, joinPair, map2Pair, mapPair, maxInt, mean, minInt, 
 view : Model -> Html Msg
 view model =
     div
-        [ style "display" "flex"
-        , style "flex-direction" "row"
-        , style "align-items" "center"
-        ]
-        [ div [ A.style "width" "400px", A.style "height" "400px" ]
-            [ svg
-                [ viewBox "0 0 400 400"
-                , width "400"
-                , height "400"
-                ]
-                [ createPolyline (modBy 100 model.year) model.month model.day
-                , polyline
-                    [ fill "none"
-                    , points "0,0 0,400 400,400 400,0 0,0"
-                    , stroke "#aaaabb"
+        []
+        [ h2 [ class "title" ] [ text "Exponential Sums Visualization" ]
+        , div
+            [ style "display" "flex"
+            , style "flex-direction" "row"
+            , style "align-items" "center"
+            ]
+            [ div [ A.style "width" "400px", A.style "height" "400px" ]
+                [ svg
+                    [ viewBox "0 0 400 400"
+                    , width "400"
+                    , height "400"
                     ]
-                    []
+                    [ createPolyline (modBy 100 model.year) model.month model.day
+                    , polyline
+                        [ fill "none"
+                        , points "0,0 0,400 400,400 400,0 0,0"
+                        , stroke "#aaaabb"
+                        ]
+                        []
+                    ]
                 ]
+            , div
+                [ class "controls"
+                , style "display" "flex"
+                , style "flex-direction" "column"
+                ]
+                (List.map (\f -> f model)
+                    [ viewYearSelector
+                    , viewMonthSelector
+                    , viewDaySelector
+                    , viewAutoplayToggle
+                    , viewSpeedSelect
+                    ]
+                )
             ]
         , div
-            [ class "controls"
-            , style "display" "flex"
-            , style "flex-direction" "column"
+            []
+            [ text "Inspired by "
+            , a [ A.href "https://www.johndcook.com/expsum/details.html" ] [ text "Explanation of exponential sums" ]
             ]
-            (List.map (\f -> f model)
-                [ viewYearSelector
-                , viewMonthSelector
-                , viewDaySelector
-                , viewAutoplayToggle
-                , viewSpeedSelect
-                ]
-            )
         ]
 
 
@@ -131,11 +140,11 @@ viewSpeedSelect model =
         , select [ id "speed-select", A.onInput SpeedSelected ]
             (List.map
                 (\( v, t ) -> Html.option [ A.value v, selected <| v == fromFloat model.speed ] [ text t ])
-                [ ( "250", "0.25s" )
-                , ( "500", "0.5s" )
-                , ( "1000", "1s" )
-                , ( "2000", "2s" )
-                , ( "4000", "4s" )
+                [ ( "250", "0.25 s" )
+                , ( "500", "0.5 s" )
+                , ( "1000", "1.0 s" )
+                , ( "2000", "2.0 s" )
+                , ( "4000", "4.0 s" )
                 ]
             )
         ]
