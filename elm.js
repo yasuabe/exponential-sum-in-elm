@@ -5644,6 +5644,7 @@ var $author$project$Update$update = F2(
 				var newModel = _Utils_update(
 					model,
 					{
+						day: day,
 						month: month,
 						today: _Utils_Tuple3(year, month, day),
 						year: year
@@ -5931,6 +5932,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
+var $elm$html$Html$main_ = _VirtualDom_node('main');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
@@ -6287,7 +6289,7 @@ var $author$project$View$viewYearSelector = function (_v0) {
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
 var $author$project$View$view = function (model) {
 	return A2(
-		$elm$html$Html$div,
+		$elm$html$Html$main_,
 		_List_Nil,
 		_List_fromArray(
 			[
