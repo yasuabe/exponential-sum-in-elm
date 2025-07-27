@@ -1,7 +1,7 @@
 module ExponentialSumTest exposing (..)
 
 import Expect
-import Main
+import View
 import Test exposing (..)
 
 
@@ -10,7 +10,7 @@ suit =
     describe "ExponentialSum"
         [ test "degration stopper for refactoring" <|
             \() ->
-                Main.encodeExpSums 25 3 26
+                View.encodeExpSums 25 3 26
                     |> String.left 100
                     |> (Expect.equal <| String.left 100 expected2)
         ]

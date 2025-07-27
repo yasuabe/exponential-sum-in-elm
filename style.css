@@ -1,0 +1,46 @@
+.autoplay-toggle__checkbox {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+  opacity: 0;
+  cursor: pointer;
+}
+.autoplay-toggle__label{
+  width: 44px;
+  height: 20px;
+  background: #ccc;
+  position: relative;
+  display: inline-block;
+  border-radius: 40px;
+  box-sizing: border-box;
+  z-index: 2;
+  transition: 0.4s;
+}
+.autoplay-toggle__label:after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 100%;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+  transition: 0.4s;
+}
+.autoplay-toggle__checkbox:checked + .autoplay-toggle__label {
+  background: #4BD865;
+}
+.autoplay-toggle__checkbox:checked + .autoplay-toggle__label:after {
+  left: calc(100% - 20px);
+}
+.autoplay-toggle {
+  position: relative;
+  width: 44px;
+  height: 20px;
+  margin: auto;
+}
