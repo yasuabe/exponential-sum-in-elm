@@ -1,19 +1,15 @@
 module View exposing (..)
 
-import DateEx exposing (lastDayOfmonth)
+import DateEx exposing (lastDayOfMonth)
 import Html exposing (Html, div, input, label, select, span, text)
 import Html.Attributes as A exposing (checked, class, for, id, selected, style)
 import Html.Events as A
 import Model exposing (Model, scanExpSums)
-import String
+import String exposing (fromFloat)
 import Svg exposing (Svg, polyline, svg)
 import Svg.Attributes exposing (fill, height, points, stroke, viewBox, width)
-import Tuple exposing (first, second)
 import Update exposing (Msg(..))
-
-
-
--- VIEW
+import Utils exposing (Pair, joinPair, map2Pair, mapPair, maxInt, mean, minInt, toPair)
 
 
 view : Model -> Html Msg
@@ -25,11 +21,11 @@ view model =
                 , width "400"
                 , height "400"
                 ]
-                [ makePolygon (modBy 100 model.year) model.month model.day
+                [ createPolyline (modBy 100 model.year) model.month model.day
                 , polyline
                     [ fill "none"
                     , points "0,0 0,400 400,400 400,0 0,0"
-                    , stroke "#0000FF"
+                    , stroke "#aaaabb"
                     ]
                     []
                 ]
@@ -38,17 +34,19 @@ view model =
             [ style "display" "flex"
             , style "flex-direction" "column"
             ]
-            [ viewYearSelector model.year
-            , viewMonthSelector model
-            , viewDaySelector model
-            , viewAutoplayToggle model
-            , viewSpeedSelect model
-            ]
+            (List.map (\f -> f model)
+                [ viewYearSelector
+                , viewMonthSelector
+                , viewDaySelector
+                , viewAutoplayToggle
+                , viewSpeedSelect
+                ]
+            )
         ]
 
 
-viewYearSelector : Int -> Html Msg
-viewYearSelector currentYear =
+viewYearSelector : Model -> Html Msg
+viewYearSelector { year } =
     div
         []
         [ label [ for "year-selector", style "font-size" "14px" ] [ text "Year" ]
@@ -56,7 +54,7 @@ viewYearSelector currentYear =
             (List.map
                 (\y ->
                     Html.option
-                        [ A.value (String.fromInt y), selected <| currentYear == y ]
+                        [ A.value (String.fromInt y), selected <| year == y ]
                         [ text (String.fromInt y) ]
                 )
                 (List.range 2001 2099)
@@ -65,15 +63,15 @@ viewYearSelector currentYear =
 
 
 viewMonthSelector : Model -> Html Msg
-viewMonthSelector model =
+viewMonthSelector { month } =
     div
         []
-        [ label [ for "year-selector", style "font-size" "14px" ] [ text "Month" ]
-        , select [ A.style "width" "100px", A.style "height" "30px", A.onInput MonthSelected ]
+        [ label [ for "month-selector", style "font-size" "14px" ] [ text "Month" ]
+        , select [ id "month-selector", A.style "width" "100px", A.style "height" "30px", A.onInput MonthSelected ]
             (List.map
                 (\m ->
                     Html.option
-                        [ A.value (String.fromInt m), selected <| model.month == m ]
+                        [ A.value (String.fromInt m), selected <| month == m ]
                         [ text (String.fromInt m) ]
                 )
                 (List.range 1 12)
@@ -82,18 +80,18 @@ viewMonthSelector model =
 
 
 viewDaySelector : Model -> Html Msg
-viewDaySelector model =
+viewDaySelector { year, month, day } =
     div
         []
-        [ label [ for "year-selector", style "font-size" "14px" ] [ text "Day" ]
-        , select [ A.style "width" "100px", A.style "height" "30px", A.onInput DaySelected ]
+        [ label [ for "day-selector", style "font-size" "14px" ] [ text "Day" ]
+        , select [ id "day-selector", A.style "width" "100px", A.style "height" "30px", A.onInput DaySelected ]
             (List.map
                 (\d ->
                     Html.option
-                        [ A.value (String.fromInt d), selected <| model.day == d ]
+                        [ A.value (String.fromInt d), selected <| day == d ]
                         [ text (String.fromInt d) ]
                 )
-                (List.range 1 <| lastDayOfmonth model.year model.month)
+                (List.range 1 <| lastDayOfMonth year month)
             )
         ]
 
@@ -105,7 +103,7 @@ viewAutoplayToggle model =
         , style "flex-direction" "row"
         , style "margin" "3px auto auto"
         ]
-        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "AUTO" ]
+        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "Autoplay" ]
         , div [ class "autoplay-toggle" ]
             [ input
                 [ id "autoplay-toggle"
@@ -127,10 +125,10 @@ viewSpeedSelect model =
         , style "flex-direction" "row"
         , style "margin" "3px auto auto"
         ]
-        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "SPEED" ]
+        [ span [ style "margin" "auto 7px 2px", style "font-size" "12px" ] [ text "Speed" ]
         , select [ A.style "width" "100px", A.style "height" "30px", A.onInput SpeedSelected ]
             (List.map
-                (\( v, t ) -> Html.option [ A.value v, selected <| v == String.fromFloat model.speed ] [ text t ])
+                (\( v, t ) -> Html.option [ A.value v, selected <| v == fromFloat model.speed ] [ text t ])
                 [ ( "250", "0.25s" )
                 , ( "500", "0.5s" )
                 , ( "1000", "1s" )
@@ -145,72 +143,53 @@ viewSpeedSelect model =
 -- SHAPE
 
 
-makePolygon : Int -> Int -> Int -> Svg msg
-makePolygon yy mm dd =
-    let
-        date =
-            "(date: " ++ String.fromInt yy ++ "-" ++ String.fromInt mm ++ "-" ++ String.fromInt dd ++ ")"
+type alias Point =
+    Pair Float
 
-        pts =
-            encodeExpSums yy mm dd
 
-        _ =
-            Debug.log (date ++ "    " ++ pts) ()
-    in
+createPolyline : Int -> Int -> Int -> Svg msg
+createPolyline yy mm dd =
     polyline
         [ fill "none"
-        , points pts
+        , points <| generateExpSumsPoints yy mm dd
         , stroke "#FF0000"
         ]
         []
 
 
-encodeExpSums : Int -> Int -> Int -> String
-encodeExpSums yy m d =
-    scanExpSums yy m d |> adjust 400 400 |> floatPairsToPoints
+generateExpSumsPoints : Int -> Int -> Int -> String
+generateExpSumsPoints yy m d =
+    scanExpSums yy m d
+        |> adjustPointsToView 400 400
+        |> List.map (mapPair fromFloat >> joinPair ",")
+        |> String.join " "
 
 
-floatPairsToPoints : List ( Float, Float ) -> String
-floatPairsToPoints pairs =
-    String.join " " (List.map (\( x, y ) -> String.fromFloat x ++ "," ++ String.fromFloat y) pairs)
-
-
-adjust : Int -> Int -> List ( Float, Float ) -> List ( Float, Float )
-adjust width height points =
+adjustPointsToView : Float -> Float -> List Point -> List Point
+adjustPointsToView width height points =
     let
         ( viewCenterX, viewCenterY ) =
-            ( toFloat width / 2.0, toFloat height / 2.0 )
+            mapPair (\x -> x / 2) ( width, height )
 
-        minX =
-            List.minimum (List.map first points) |> Maybe.withDefault 0
+        ( ( minX, minY ), ( maxX, maxY ) ) =
+            List.foldl
+                (\p ( accMin, accMax ) -> ( map2Pair min p accMin, map2Pair max p accMax ))
+                (mapPair (toFloat >> toPair) ( maxInt, minInt ))
+                points
 
-        maxX =
-            List.maximum (List.map first points) |> Maybe.withDefault 0
-
-        minY =
-            List.minimum (List.map second points) |> Maybe.withDefault 0
-
-        maxY =
-            List.maximum (List.map second points) |> Maybe.withDefault 0
-
-        ( originalWidth, originalHeight ) =
+        ( originalW, originalH ) =
             ( maxX - minX, maxY - minY )
 
-        ( originalCenterX, originalCenterY ) =
-            ( (minX + maxX) / 2, (minY + maxY) / 2 )
+        ( centerX, centerY ) =
+            ( mean minX maxX, mean minY maxY )
 
         ratio =
-            if originalWidth < originalHeight then
-                toFloat height / originalHeight
+            if originalW < originalH then
+                height / originalH
 
             else
-                toFloat width / originalWidth
-
-        positionAdjusted =
-            List.map
-                (\( x, y ) ->
-                    ( viewCenterX + (x - originalCenterX) * ratio, viewCenterY - (y - originalCenterY) * ratio )
-                )
-                points
+                width / originalW
     in
-    positionAdjusted
+    List.map
+        (\( x, y ) -> ( viewCenterX + (x - centerX) * ratio, viewCenterY - (y - centerY) * ratio ))
+        points

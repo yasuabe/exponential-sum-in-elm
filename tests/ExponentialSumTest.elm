@@ -10,7 +10,7 @@ suit =
     describe "ExponentialSum"
         [ test "degration stopper for refactoring" <|
             \() ->
-                View.encodeExpSums 25 3 26
+                View.generateExpSumsPoints 25 3 26
                     |> String.left 100
                     |> (Expect.equal <| String.left 100 expected2)
         ]

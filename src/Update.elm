@@ -1,11 +1,11 @@
 module Update exposing (..)
 
-import Time
-import Model exposing (Model , increment)
 import DateEx exposing (toDateTriple)
+import Model exposing (..)
 import Process
-import String
 import Task
+import Time
+
 
 type Msg
     = Tick
@@ -16,9 +16,10 @@ type Msg
     | AutoPlayChecked Bool
     | SpeedSelected String
 
+
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { year = 2025, month = 1, day = 1, today = ( 2025, 1, 1 ), zone = Time.utc, autoplay = False, speed = 1000 }
+    ( initialModel
     , Task.perform Today Time.now
     )
 
@@ -26,13 +27,11 @@ init _ =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        ( todayY, todayM, todayD ) =
-            model.today
+        withNone m =
+            ( m, Cmd.none )
 
-        delayTick : Cmd Msg
         delayTick =
-            Process.sleep model.speed
-                |> Task.perform (always Tick)
+            Process.sleep model.speed |> Task.perform (always Tick)
     in
     case msg of
         Today posix ->
@@ -46,30 +45,29 @@ update msg model =
             ( newModel, delayTick )
 
         Tick ->
-            -- if model.year > 2099 || not model.autoplay then
-            if model.year == 2099 && model.month == 12 && model.day == 31 || not model.autoplay then
-                ( model, Cmd.none )
+            if isAtMaxDate model || not model.autoplay then
+                model |> withNone
 
             else
-                ( increment model, delayTick )
+                ( incrementDate model, delayTick )
 
-        YearSelected selectedYear ->
-            ( { model | year = String.toInt selectedYear |> Maybe.withDefault todayY }, Cmd.none )
+        YearSelected yyyy ->
+            model |> setYearS yyyy |> withNone
 
-        MonthSelected selectedMonth ->
-            ( { model | month = String.toInt selectedMonth |> Maybe.withDefault todayM }, Cmd.none )
+        MonthSelected mm ->
+            model |> setMonthS mm |> withNone
 
-        DaySelected selectedDay ->
-            ( { model | day = String.toInt selectedDay |> Maybe.withDefault todayD }, Cmd.none )
+        DaySelected dd ->
+            model |> setDayS dd |> withNone
 
-        AutoPlayChecked isChecked ->
-            ( { model | autoplay = isChecked }
-            , if isChecked then
+        AutoPlayChecked checked ->
+            ( { model | autoplay = checked }
+            , if checked then
                 delayTick
 
               else
                 Cmd.none
             )
 
-        SpeedSelected selectedSpeed ->
-            ( { model | speed = String.toFloat selectedSpeed |> Maybe.withDefault 1000 }, Cmd.none )
+        SpeedSelected speed ->
+            model |> setSpeedS speed |> withNone
